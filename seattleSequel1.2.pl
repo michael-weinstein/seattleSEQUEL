@@ -159,33 +159,53 @@ sub main(){
     print "\nDone generating the input file\, now generating the SQL script\!\n";  #prints done in the console
     
     
-    my $dbname;  #declares a variable for database name
-    my $tablename;  #declares a variable for table name
-    while (!defined $dbname) {  #until the table name is defined
-        print "In which database will we create this table\?\n";
-        $dbname = readline STDIN;  #reads the user input line
-        chomp $dbname;  #eliminates trailing characters and linebreaks from the input
+    #my $dbname;  #declares a variable for database name     SECTION COMMENTED OUT FOR REPLACEMENT WITH A SECTION THAT CAN USE COMMANDLINE ARGUMENTS FOR NAMES COPIED FROM VCF2SQL4.1
+    #my $tablename;  #declares a variable for table name
+    #while (!defined $dbname) {  #until the table name is defined
+    #    print "In which database will we create this table\?\n";
+    #    $dbname = readline STDIN;  #reads the user input line
+    #    chomp $dbname;  #eliminates trailing characters and linebreaks from the input
+    #    if ($dbname =~ /\W/) {  #checks the input for any non-word characters (anything other than alphaneumeric and underscore)
+    #        print "Database name contains invalid characters\.  Valid characters are alphaneumeric or underscore\.\n";
+    #        undef $dbname;  #undefines the database name before returning to the beginning of the loop
+    #    }   
+    #}
+    #print "Please be sure that the database is already created before running the table creation script generated here\.\n";
+    #while (!defined $tablename) {  #this block of code does the same thing with the table name as we just did with the database name
+    #    print "What do you wish to call the table\?\n";
+    #    $tablename = readline STDIN;
+    #    chomp $tablename;
+    #    if ($tablename =~ /\W/) {
+    #        print "Table name contains invalid characters\.  Valid characters are alphaneumeric or underscore\.\n";
+    #        undef $tablename;
+    #    }
+    #}
+    
+    my $dbname; #declares a variable for database name
+    if ($opts{d}) {
+        $dbname = $opts{d};
         if ($dbname =~ /\W/) {  #checks the input for any non-word characters (anything other than alphaneumeric and underscore)
             print "Database name contains invalid characters\.  Valid characters are alphaneumeric or underscore\.\n";
             undef $dbname;  #undefines the database name before returning to the beginning of the loop
-        }   
-    }
-    print "Please be sure that the database is already created before running the table creation script generated here\.\n";
-    while (!defined $tablename) {  #this block of code does the same thing with the table name as we just did with the database name
-        print "What do you wish to call the table\?\n";
-        $tablename = readline STDIN;
-        chomp $tablename;
-        if ($tablename =~ /\W/) {
-            print "Table name contains invalid characters\.  Valid characters are alphaneumeric or underscore\.\n";
-            undef $tablename;
         }
+        else {print "Using database ".$dbname."\n"}
     }
+    my $tablename;  #declares a variable for table name
+    if ($opts{t}) {
+        $tablename = $opts{t};
+        if ($tablename =~ /\W/) {  #checks the input for any non-word characters (anything other than alphaneumeric and underscore)
+            print "Database name contains invalid characters\.  Valid characters are alphaneumeric or underscore\.\n";
+            undef $tablename;  #undefines the database name before returning to the beginning of the loop
+        }
+        else {print "Using table ".$tablename."\n"}
+    }
+    
 
     unless (-e "seattleSequel.prefs.txt"){  #checks to see if the preferences file exists
         print "No field\-type preference file found\.  Generating default preference file\.\n";  #prints a message if not
         open (PREFS, ">seattleSequel.prefs.txt") or die "Unable to create preferences file.\n";  #creates a new preferences file using the two lines below
-        print PREFS "lineNumber\tuniLoc\t__inDBSNPOrNot\tchromosome\tposition\treferenceBase\tsampleGenotype\tsampleAlleles\tallelesDBSNP\taccession\tfunctionGVS\tfunctionDBSNP\trsID\taminoAcids\tproteinPosition\tcDNAPosition\tpolyPhen\tgranthamScore\tscorePhastCons\tconsScoreGERP\tscoreCADD\tchimpAllele\tgeneList\tAfricanHapMapFreq\tEuropeanHapMapFreq\tAsianHapMapFreq\thasGenotypes\tdbSNPValidation\trepeatMasker\ttandemRepeat\tclinicalAssociation\tdistanceToSplice\tmicroRNAs\tkeggPathway\tcpgIslands\ttfbs\tgenomesESP\tPPI\tproteinSequence\tdbSNP_ID\tdbSNP_5_percent_in_all\tdbSNP_5_percent_any\tdbSNP_Mutation\tESPfreqs\tMAFinESP\tdbSNP_5_percentany\tdbSNP_5_percent_in_any\tCNV\tA1_AF_AFR\tA1_AF_AMR\tA1_AF_EAS\tA1_AF_FIN\tA1_AF_NFE\tA1_AF_SAS\tA1_AF_OTH\tA1_AF_max\tA1_HOMOF_AFR\tA1_HOMOF_AMR\tA1_HOMOF_EAS\tA1_HOMOF_FIN\tA1_HOMOF_NFE\tA1_HOMOF_SAS\tA1_HOMOF_OTH\tA1_HOMOF_max\tA2_AF_AFR\tA2_AF_AMR\tA2_AF_EAS\tA2_AF_FIN\tA2_AF_NFE\tA2_AF_SAS\tA2_AF_OTH\tA2_AF_max\tA2_HOMOF_AFR\tA2_HOMOF_AMR\tA2_HOMOF_EAS\tA2_HOMOF_FIN\tA2_HOMOF_NFE\tA2_HOMOF_SAS\tA2_HOMOF_OTH\tA2_HOMOF_max\tF_rarest_allele\tCombo_max\tvarMD5\n";
-        print PREFS "INT NOT NULL\tVARCHAR(15) NOT NULL\tVARCHAR(12) NULL\tENUM('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','X','Y','MT') NOT NULL\tINT NOT NULL\tVARCHAR(45) NULL\tVARCHAR(100) NULL\tVARCHAR(45) NULL\tVARCHAR(255) NULL\tVARCHAR(45) NULL\tVARCHAR(45) NULL\tVARCHAR(100) NULL\tINT NULL\tVARCHAR(15) NULL\tVARCHAR(20) NULL\tVARCHAR(8) NULL\tVARCHAR(25) NULL\tVARCHAR(10) NULL\tFLOAT(8,5) NULL\tVARCHAR(10) NULL\tVARCHAR(10) NULL\tVARCHAR(10) NULL\tVARCHAR(255) NOT NULL\tVARCHAR(10) NULL\tVARCHAR(10) NULL\tVARCHAR(10) NULL\tENUM('yes','no') NULL\tVARCHAR(180) NULL\tVARCHAR(30) NULL\tVARCHAR(200) NULL\tTEXT NULL\tINT NULL\tVARCHAR(30) NULL\tTEXT NULL\tVARCHAR(45) NULL\tVARCHAR(255) NULL\tVARCHAR(60) NULL\tTEXT NULL\tVARCHAR(45) NULL\tVARCHAR(30) NULL\tVARCHAR(25) NULL\tVARCHAR(25) NULL\tVARCHAR(25) NULL\tVARCHAR(50) NULL\tFLOAT NULL\tVARCHAR(25) NULL\tVARCHAR(25)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tFLOAT\tVARCHAR(255)\tCHAR(32)";
+        print PREFS "lineNumber\tuniLoc\t__inDBSNPOrNot\tchromosome\tposition\treferenceBase\tsampleGenotype\tsampleAlleles\tallelesDBSNP\taccession\tfunctionGVS\tfunctionDBSNP\trsID\taminoAcids\tproteinPosition\tcDNAPosition\tpolyPhen\tgranthamScore\tscorePhastCons\tconsScoreGERP\tscoreCADD\tchimpAllele\tgeneList\tAfricanHapMapFreq\tEuropeanHapMapFreq\tAsianHapMapFreq\thasGenotypes\tdbSNPValidation\trepeatMasker\ttandemRepeat\tclinicalAssociation\tdistanceToSplice\tmicroRNAs\tkeggPathway\tcpgIslands\ttfbs\tgenomesESP\tPPI\tproteinSequence\tdbSNP_ID\tdbSNP_5_percent_in_all\tdbSNP_5_percent_any\tdbSNP_Mutation\tESPfreqs\tMAFinESP\tdbSNP_5_percentany\tdbSNP_5_percent_in_any\tCNV\tA1_AF_AFR\tA1_AF_AMR\tA1_AF_EAS\tA1_AF_FIN\tA1_AF_NFE\tA1_AF_SAS\tA1_AF_OTH\tA1_AF_max\tA1_HOMOF_AFR\tA1_HOMOF_AMR\tA1_HOMOF_EAS\tA1_HOMOF_FIN\tA1_HOMOF_NFE\tA1_HOMOF_SAS\tA1_HOMOF_OTH\tA1_HOMOF_max\tA2_AF_AFR\tA2_AF_AMR\tA2_AF_EAS\tA2_AF_FIN\tA2_AF_NFE\tA2_AF_SAS\tA2_AF_OTH\tA2_AF_max\tA2_HOMOF_AFR\tA2_HOMOF_AMR\tA2_HOMOF_EAS\tA2_HOMOF_FIN\tA2_HOMOF_NFE\tA2_HOMOF_SAS\tA2_HOMOF_OTH\tA2_HOMOF_max\tF_rarest_allele\tCombo_max\tvarMD5\tgenomesExAC\n";
+        print PREFS "INT NOT NULL\tVARCHAR(15) NOT NULL\tVARCHAR(12) NULL\tENUM('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','X','Y','MT') NOT NULL\tINT NOT NULL\tVARCHAR(45) NULL\tVARCHAR(100) NULL\tVARCHAR(45) NULL\tVARCHAR(255) NULL\tVARCHAR(45) NULL\tVARCHAR(45) NULL\tVARCHAR(100) NULL\tINT NULL\tVARCHAR(15) NULL\tVARCHAR(20) NULL\tVARCHAR(8) NULL\tVARCHAR(25) NULL\tVARCHAR(10) NULL\tFLOAT(8,5) NULL\tVARCHAR(10) NULL\tVARCHAR(10) NULL\tVARCHAR(10) NULL\tVARCHAR(255) NOT NULL\tVARCHAR(10) NULL\tVARCHAR(10) NULL\tVARCHAR(10) NULL\tENUM('yes','no') NULL\tVARCHAR(180) NULL\tVARCHAR(30) NULL\tVARCHAR(200) NULL\tTEXT NULL\tINT NULL\tVARCHAR(30) NULL\tTEXT NULL\tVARCHAR(45) NULL\tVARCHAR(255) NULL\tVARCHAR(60) NULL\tTEXT NULL\tVARCHAR(45) NULL\tVARCHAR(30) NULL\tVARCHAR(25) NULL\tVARCHAR(25) NULL\tVARCHAR(25) NULL\tVARCHAR(50) NULL\tFLOAT NULL\tVARCHAR(25) NULL\tVARCHAR(25)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tVARCHAR(255)\tFLOAT\tVARCHAR(255)\tCHAR(32)\tVARCHAR(255)";
         print "Field\-type preference file generated\, may be edited as a tab-delimited text if needed\.\n";
         close PREFS;  #closes the preferences file
     }
